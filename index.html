@@ -1,0 +1,1035 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vortex Gaming Studio | Diwa Gaming Hub</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f5f3ff',
+                            100: '#ede9fe',
+                            200: '#ddd6fe',
+                            500: '#8b5cf6',
+                            600: '#7c3aed',
+                            700: '#6d28d9',
+                            800: '#5b21b6',
+                            900: '#4c1d95',
+                        },
+                        cyber: {
+                            accent: '#06b6d4',
+                            glow: '#22d3ee'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+                        tech: ['Orbitron', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Google Fonts & FontAwesome -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;700&family=Orbitron:wght@600;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --bg-main: #f3f4f8;
+            --brand-purple: #8b5cf6;
+            --brand-cyan: #06b6d4;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: #0f172a;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+            perspective: 1200px;
+        }
+
+        /* -------------------------------------------------------------
+           HIGH-LEVEL UNIVERSAL ASSEMBLY ANIMATION & MOTION STYLES
+        ------------------------------------------------------------- */
+        
+        /* Base Assembly Element State (Scattered in 3D Space) */
+        .assemble-item {
+            opacity: 0;
+            will-change: transform, filter, opacity;
+            transition: transform 1.2s cubic-bezier(0.16, 1, 0.3, 1), 
+                        opacity 1.2s cubic-bezier(0.16, 1, 0.3, 1), 
+                        filter 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        /* Directional Scatter Pre-states */
+        .assemble-item[data-fly="top-left"] {
+            transform: translate3d(-180px, -180px, 120px) rotate3d(1, 1, 0, 45deg) scale(0.6);
+            filter: blur(12px);
+        }
+        .assemble-item[data-fly="top-right"] {
+            transform: translate3d(180px, -180px, 120px) rotate3d(-1, 1, 0, -45deg) scale(0.6);
+            filter: blur(12px);
+        }
+        .assemble-item[data-fly="top"] {
+            transform: translate3d(0, -160px, 100px) rotateX(40deg) scale(0.7);
+            filter: blur(10px);
+        }
+        .assemble-item[data-fly="bottom-left"] {
+            transform: translate3d(-200px, 180px, 100px) rotate3d(-1, -1, 0, -35deg) scale(0.65);
+            filter: blur(12px);
+        }
+        .assemble-item[data-fly="bottom-right"] {
+            transform: translate3d(200px, 180px, 100px) rotate3d(1, -1, 0, 35deg) scale(0.65);
+            filter: blur(12px);
+        }
+        .assemble-item[data-fly="bottom"] {
+            transform: translate3d(0, 160px, 80px) rotateX(-35deg) scale(0.75);
+            filter: blur(10px);
+        }
+        .assemble-item[data-fly="left"] {
+            transform: translate3d(-220px, 0, 90px) rotateY(-50deg) scale(0.7);
+            filter: blur(12px);
+        }
+        .assemble-item[data-fly="right"] {
+            transform: translate3d(220px, 0, 90px) rotateY(50deg) scale(0.7);
+            filter: blur(12px);
+        }
+        .assemble-item[data-fly="center"] {
+            transform: translate3d(0, 0, 250px) scale(0.4) rotateZ(15deg);
+            filter: blur(16px);
+        }
+
+        /* Fully Assembled State */
+        .assemble-item.assembled {
+            opacity: 1 !important;
+            transform: translate3d(0, 0, 0) rotate3d(0, 0, 0, 0deg) scale(1) !important;
+            filter: blur(0px) !important;
+        }
+
+        /* Flash Docking Highlight Effect on Assembly */
+        .docked-glow {
+            animation: dockPulse 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes dockPulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.6);
+            }
+            50% {
+                box-shadow: 0 0 25px 4px rgba(139, 92, 246, 0.5), 0 0 15px 2px rgba(6, 182, 212, 0.4);
+            }
+            100% {
+                box-shadow: none;
+            }
+        }
+
+        /* Word Inline Span Assembly */
+        .word-unit {
+            display: inline-block;
+            white-space: pre;
+            will-change: transform, opacity, filter;
+            transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1), 
+                        opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), 
+                        filter 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        /* Blueprint Scan Line Background Overlay during assembly */
+        .blueprint-laser-overlay {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 40;
+            background-image: 
+                linear-gradient(to right, rgba(139, 92, 246, 0.04) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(6, 182, 212, 0.04) 1px, transparent 1px);
+            background-size: 32px 32px;
+            opacity: 1;
+            transition: opacity 1.5s ease;
+        }
+
+        .blueprint-laser-overlay.done {
+            opacity: 0;
+        }
+
+        /* HUD Status Banner Top */
+        #hud-status-banner {
+            position: fixed;
+            top: 6px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 60;
+            pointer-events: none;
+            transition: opacity 0.8s ease, transform 0.8s ease;
+        }
+
+        /* Glass Panel Styling */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.88);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.9);
+            box-shadow: 0 20px 40px -15px rgba(139, 92, 246, 0.08), 0 0 1px 1px rgba(255, 255, 255, 0.6);
+        }
+
+        .glass-panel-hover {
+            transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.35s ease, border-color 0.35s ease;
+        }
+
+        .glass-panel-hover:hover {
+            transform: translateY(-4px) scale(1.01);
+            border-color: rgba(139, 92, 246, 0.4);
+            box-shadow: 0 25px 50px -12px rgba(139, 92, 246, 0.18), 0 0 20px rgba(6, 182, 212, 0.15);
+        }
+
+        .hud-badge {
+            font-family: 'Orbitron', sans-serif;
+            letter-spacing: 0.08em;
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(6, 182, 212, 0.08));
+            border: 1px solid rgba(139, 92, 246, 0.3);
+        }
+
+        .btn-apple-purple {
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+            box-shadow: 0 8px 25px -5px rgba(139, 92, 246, 0.4);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .btn-apple-purple:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 30px -4px rgba(139, 92, 246, 0.6);
+        }
+
+        /* Page Switcher SPA */
+        .page-section {
+            display: none;
+            opacity: 0;
+            transform: scale(0.98) translateY(12px);
+            transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1), transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .page-section.active {
+            display: block;
+            opacity: 1;
+            transform: scale(1) translateY(0);
+        }
+
+        /* Canvas Background */
+        #particle-canvas {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f3f4f8; }
+        ::-webkit-scrollbar-thumb { background: #c4b5fd; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #8b5cf6; }
+    </style>
+</head>
+<body class="relative min-h-screen flex flex-col antialiased selection:bg-brand-200 selection:text-brand-900">
+
+    <!-- Canvas Particle Backdrop -->
+    <canvas id="particle-canvas"></canvas>
+
+    <!-- Blueprint Grid Laser Overlay (Disappears after full assembly) -->
+    <div id="blueprint-overlay" class="blueprint-laser-overlay"></div>
+
+    <!-- Live Telemetry Docking Status Tag -->
+    <div id="hud-status-banner">
+        <span class="hud-badge text-[10px] sm:text-xs font-mono font-bold text-brand-800 px-4 py-1.5 rounded-full shadow-lg bg-white/90 backdrop-blur-md flex items-center gap-2 border border-purple-300">
+            <span class="w-2 h-2 rounded-full bg-brand-600 animate-ping"></span>
+            <span id="hud-status-text">INITIALIZING DIGITAL NODE ASSEMBLY...</span>
+        </span>
+    </div>
+
+
+    <!-- MAIN WEBSITE HEADER NAVIGATION -->
+    <header class="fixed top-0 left-0 right-0 z-50 px-4 sm:px-8 py-4">
+        <div class="max-w-7xl mx-auto glass-panel rounded-2xl px-5 py-3 flex items-center justify-between shadow-lg">
+            
+            <!-- Brand Logo & Title Container -->
+            <div class="flex items-center space-x-3 cursor-pointer" onclick="switchPage('home')">
+                <!-- Icon Box flying in from top-left -->
+                <div id="brand-logo-icon" data-fly="top-left" class="assemble-item w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-cyber-accent flex items-center justify-center text-white shadow-md shadow-purple-300">
+                    <i class="fa-solid fa-vr-cardboard text-lg"></i>
+                </div>
+                <div>
+                    <!-- Title flying in from left -->
+                    <span id="brand-logo-title" data-fly="left" class="assemble-item inline-block text-lg font-black tracking-tight text-slate-900 font-tech">
+                        VORTEX<span class="text-brand-600">STUDIO</span>
+                    </span>
+                    <!-- Sub-tag flying in from bottom-left -->
+                    <span id="brand-logo-sub" data-fly="bottom-left" class="assemble-item block text-[9px] font-mono text-slate-400 -mt-1 tracking-widest">
+                        DIWA HUB 2.0
+                    </span>
+                </div>
+            </div>
+
+            <!-- Desktop Nav Navigation Items (Assembled standard buttons) -->
+            <nav class="hidden md:flex items-center space-x-1 bg-slate-100/80 p-1 rounded-xl border border-slate-200/60">
+                <button onclick="switchPage('home')" id="nav-home" data-fly="top" class="nav-btn assemble-item px-4 py-2 text-xs font-bold rounded-lg text-slate-600 hover:text-brand-600 transition-all">Home</button>
+                <button onclick="switchPage('services')" id="nav-services" data-fly="top" class="nav-btn assemble-item px-4 py-2 text-xs font-bold rounded-lg text-slate-600 hover:text-brand-600 transition-all">Services</button>
+                <button onclick="switchPage('about')" id="nav-about" data-fly="top" class="nav-btn assemble-item px-4 py-2 text-xs font-bold rounded-lg text-slate-600 hover:text-brand-600 transition-all">About</button>
+                <button onclick="switchPage('blog')" id="nav-blog" data-fly="top" class="nav-btn assemble-item px-4 py-2 text-xs font-bold rounded-lg text-slate-600 hover:text-brand-600 transition-all">Blog</button>
+                <button onclick="switchPage('contact')" id="nav-contact" data-fly="top" class="nav-btn assemble-item px-4 py-2 text-xs font-bold rounded-lg text-slate-600 hover:text-brand-600 transition-all">Contact</button>
+            </nav>
+
+            <!-- CTA Action Buttons -->
+            <div class="flex items-center space-x-3">
+                <button id="header-cta-btn" data-fly="top-right" onclick="switchPage('contact')" class="assemble-item btn-apple-purple text-white px-5 py-2.5 rounded-xl font-bold text-xs shadow-lg">
+                    <i class="fa-solid fa-rocket mr-1 text-purple-200"></i> Get Started
+                </button>
+
+                <!-- Mobile Menu Button -->
+                <button onclick="toggleMobileMenu()" id="header-mobile-btn" data-fly="right" class="assemble-item md:hidden p-2 text-slate-700 hover:text-brand-600">
+                    <i class="fa-solid fa-bars-staggered text-xl"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Mobile Menu Dropdown -->
+        <div id="mobile-menu" class="hidden md:hidden max-w-7xl mx-auto mt-2 glass-panel rounded-2xl p-4 space-y-2">
+            <button onclick="switchPage('home')" class="block w-full text-left px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-purple-50 rounded-xl">Home</button>
+            <button onclick="switchPage('services')" class="block w-full text-left px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-purple-50 rounded-xl">Services</button>
+            <button onclick="switchPage('about')" class="block w-full text-left px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-purple-50 rounded-xl">About</button>
+            <button onclick="switchPage('blog')" class="block w-full text-left px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-purple-50 rounded-xl">Blog</button>
+            <button onclick="switchPage('contact')" class="block w-full text-left px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-purple-50 rounded-xl">Contact</button>
+        </div>
+    </header>
+
+
+    <!-- MAIN CONTENT SPA PAGES CONTAINER -->
+    <main class="flex-grow pt-28 pb-16 relative z-10">
+
+        <!-- ================= PAGE 1: HOME ================= -->
+        <section id="page-home" class="page-section max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            
+            <!-- Hero Header Section -->
+            <div class="text-center max-w-4xl mx-auto py-8 md:py-12">
+                <!-- Badge flying in from center-top -->
+                <div id="hero-badge" data-fly="center" class="assemble-item inline-flex items-center gap-2 px-4 py-1.5 rounded-full hud-badge text-brand-700 text-xs font-mono font-bold mb-6">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    NEXT-GEN PORTAL ASSEMBLY v2.4 ONLINE
+                </div>
+
+                <!-- Word-by-Word Fly-in Assembled Headline -->
+                <h1 id="hero-title" class="text-4xl sm:text-6xl md:text-7xl font-black tracking-tight text-slate-900 mb-6 leading-tight">
+                    Ultra-Smooth Gaming Architecture
+                </h1>
+
+                <!-- Word-by-Word Fly-in Subtitle -->
+                <p id="hero-subtitle" class="text-lg sm:text-xl text-slate-600 max-w-2xl mx-auto mb-10 leading-relaxed font-normal">
+                    Vortex Gaming Studio provides high-performance app mirrors, ultra-low latency configurations, and verified installation frameworks for modern mobile gaming.
+                </p>
+
+                <!-- Hero Action Buttons -->
+                <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+                    <button id="hero-btn-primary" data-fly="bottom-left" onclick="switchPage('services')" class="assemble-item btn-apple-purple text-white px-8 py-4 rounded-2xl font-bold text-sm w-full sm:w-auto">
+                        <i class="fa-solid fa-gamepad mr-2"></i> Explore App Services
+                    </button>
+                    <button id="hero-btn-secondary" data-fly="bottom-right" onclick="switchPage('blog')" class="assemble-item glass-panel glass-panel-hover text-slate-800 px-8 py-4 rounded-2xl font-bold text-sm w-full sm:w-auto">
+                        <i class="fa-solid fa-book-open mr-2 text-brand-600"></i> Read Setup Guides
+                    </button>
+                </div>
+            </div>
+
+            <!-- Feature Cards Grid (Flying in from 3 distinct vectors) -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 my-10">
+                
+                <!-- Card 1 -->
+                <div id="feature-card-1" data-fly="left" class="assemble-item glass-panel glass-panel-hover rounded-3xl p-8">
+                    <div class="w-14 h-14 rounded-2xl bg-purple-100 text-brand-600 flex items-center justify-center text-2xl mb-6 shadow-inner">
+                        <i class="fa-solid fa-gauge-high"></i>
+                    </div>
+                    <h3 class="text-xl font-extrabold text-slate-900 mb-2">Maximum FPS Acceleration</h3>
+                    <p class="text-slate-600 text-sm leading-relaxed">
+                        Hardware-tuned configurations designed to unlock steady 60+ FPS performance on modern mobile chipsets.
+                    </p>
+                </div>
+
+                <!-- Card 2 -->
+                <div id="feature-card-2" data-fly="bottom" class="assemble-item glass-panel glass-panel-hover rounded-3xl p-8">
+                    <div class="w-14 h-14 rounded-2xl bg-indigo-100 text-cyber-accent flex items-center justify-center text-2xl mb-6 shadow-inner">
+                        <i class="fa-solid fa-shield-halved"></i>
+                    </div>
+                    <h3 class="text-xl font-extrabold text-slate-900 mb-2">Verified Security Checksums</h3>
+                    <p class="text-slate-600 text-sm leading-relaxed">
+                        Every release package is continuously verified against SHA-256 hashes to guarantee complete security.
+                    </p>
+                </div>
+
+                <!-- Card 3 -->
+                <div id="feature-card-3" data-fly="right" class="assemble-item glass-panel glass-panel-hover rounded-3xl p-8">
+                    <div class="w-14 h-14 rounded-2xl bg-purple-100 text-brand-600 flex items-center justify-center text-2xl mb-6 shadow-inner">
+                        <i class="fa-solid fa-bolt"></i>
+                    </div>
+                    <h3 class="text-xl font-extrabold text-slate-900 mb-2">Low Latency CDN Mirrors</h3>
+                    <p class="text-slate-600 text-sm leading-relaxed">
+                        Global server edge caching ensuring high-speed package delivery with zero waiting queues.
+                    </p>
+                </div>
+
+            </div>
+
+            <!-- Telemetry Stats Ticker (Flying in from bottom) -->
+            <div id="telemetry-bar" data-fly="bottom" class="assemble-item glass-panel rounded-3xl p-8 my-12">
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+                    <div>
+                        <div class="text-3xl sm:text-4xl font-black text-brand-600 font-tech">99.9%</div>
+                        <div class="text-xs font-bold text-slate-500 uppercase tracking-wider mt-1">Uptime SLA</div>
+                    </div>
+                    <div>
+                        <div class="text-3xl sm:text-4xl font-black text-brand-600 font-tech">4.2M+</div>
+                        <div class="text-xs font-bold text-slate-500 uppercase tracking-wider mt-1">Downloads</div>
+                    </div>
+                    <div>
+                        <div class="text-3xl sm:text-4xl font-black text-brand-600 font-tech">0.12s</div>
+                        <div class="text-xs font-bold text-slate-500 uppercase tracking-wider mt-1">Mirror Latency</div>
+                    </div>
+                    <div>
+                        <div class="text-3xl sm:text-4xl font-black text-brand-600 font-tech">100%</div>
+                        <div class="text-xs font-bold text-slate-500 uppercase tracking-wider mt-1">SHA Signed</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ================= PAGE 2: SERVICES ================= -->
+        <section id="page-services" class="page-section max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-16">
+                <span class="hud-badge px-3 py-1 rounded-full text-brand-700 text-xs font-mono font-bold uppercase inline-block mb-3">CYBER UTILITY ENGINE</span>
+                <h2 class="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight mb-4">Vortex Platform Services</h2>
+                <p class="text-slate-600 text-lg">High-tier gaming tools, distribution setups, and performance optimizations.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div class="glass-panel glass-panel-hover rounded-3xl p-8 flex flex-col justify-between">
+                    <div>
+                        <div class="w-12 h-12 rounded-2xl bg-purple-100 text-brand-600 flex items-center justify-center text-xl mb-6">
+                            <i class="fa-solid fa-cloud-arrow-down"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-slate-900 mb-2">High-Speed Mirrors</h3>
+                        <p class="text-slate-600 text-sm leading-relaxed mb-6">Direct application mirror hosting backed by distributed cloud edge nodes for maximum bandwidth capacity.</p>
+                    </div>
+                    <span class="text-xs font-mono font-bold text-brand-600">✓ CDN Node Active</span>
+                </div>
+
+                <div class="glass-panel glass-panel-hover rounded-3xl p-8 flex flex-col justify-between">
+                    <div>
+                        <div class="w-12 h-12 rounded-2xl bg-indigo-100 text-cyber-accent flex items-center justify-center text-xl mb-6">
+                            <i class="fa-solid fa-microchip"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-slate-900 mb-2">FPS & GPU Optimization</h3>
+                        <p class="text-slate-600 text-sm leading-relaxed mb-6">Tailored device profiles that recalibrate GPU rendering threads for stutter-free touch response.</p>
+                    </div>
+                    <span class="text-xs font-mono font-bold text-brand-600">✓ GPU Tuning Ready</span>
+                </div>
+
+                <div class="glass-panel glass-panel-hover rounded-3xl p-8 flex flex-col justify-between">
+                    <div>
+                        <div class="w-12 h-12 rounded-2xl bg-purple-100 text-brand-600 flex items-center justify-center text-xl mb-6">
+                            <i class="fa-solid fa-lock"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-slate-900 mb-2">Package Integrity Audits</h3>
+                        <p class="text-slate-600 text-sm leading-relaxed mb-6">Continuous automated binary audits to ensure packages remain untouched, safe, and unmodified.</p>
+                    </div>
+                    <span class="text-xs font-mono font-bold text-brand-600">✓ SHA-256 Verified</span>
+                </div>
+
+                <div class="glass-panel glass-panel-hover rounded-3xl p-8 flex flex-col justify-between">
+                    <div>
+                        <div class="w-12 h-12 rounded-2xl bg-indigo-100 text-cyber-accent flex items-center justify-center text-xl mb-6">
+                            <i class="fa-solid fa-bug-slash"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-slate-900 mb-2">Compatibility Fixes</h3>
+                        <p class="text-slate-600 text-sm leading-relaxed mb-6">Step-by-step resolution manuals for OS version mismatches and graphics engine glitches.</p>
+                    </div>
+                    <span class="text-xs font-mono font-bold text-brand-600">✓ Troubleshooting Active</span>
+                </div>
+
+                <div class="glass-panel glass-panel-hover rounded-3xl p-8 flex flex-col justify-between">
+                    <div>
+                        <div class="w-12 h-12 rounded-2xl bg-purple-100 text-brand-600 flex items-center justify-center text-xl mb-6">
+                            <i class="fa-solid fa-rotate"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-slate-900 mb-2">Rollback Archives</h3>
+                        <p class="text-slate-600 text-sm leading-relaxed mb-6">Access stable legacy application versions whenever newly released updates introduce bugs.</p>
+                    </div>
+                    <span class="text-xs font-mono font-bold text-brand-600">✓ Version Archive Online</span>
+                </div>
+
+                <div class="glass-panel glass-panel-hover rounded-3xl p-8 flex flex-col justify-between">
+                    <div>
+                        <div class="w-12 h-12 rounded-2xl bg-indigo-100 text-cyber-accent flex items-center justify-center text-xl mb-6">
+                            <i class="fa-solid fa-headset"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-slate-900 mb-2">Community Support Desk</h3>
+                        <p class="text-slate-600 text-sm leading-relaxed mb-6">Dedicated technical community board providing prompt feedback for setup inquiries.</p>
+                    </div>
+                    <span class="text-xs font-mono font-bold text-brand-600">✓ Help Desk Open</span>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ================= PAGE 3: ABOUT ================= -->
+        <section id="page-about" class="page-section max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                <div class="space-y-6">
+                    <span class="hud-badge px-3 py-1 rounded-full text-brand-700 text-xs font-mono font-bold uppercase inline-block">STUDIO VISION</span>
+                    <h2 class="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight">Crafting High-Tier Digital Portals</h2>
+                    <p class="text-slate-600 text-base leading-relaxed">
+                        Vortex Gaming Studio was founded to solve a critical issue in modern mobile gaming: fragmented application sources and unverified setup packages.
+                    </p>
+                    <p class="text-slate-600 text-base leading-relaxed">
+                        By integrating Web 2.0 interactive standards with Apple-grade digital assembly mechanics, we deliver a clean, responsive space where players can access mobile gaming builds with absolute peace of mind.
+                    </p>
+
+                    <div class="grid grid-cols-2 gap-4 pt-4">
+                        <div class="glass-panel p-4 rounded-2xl">
+                            <i class="fa-solid fa-shield-cat text-brand-600 text-2xl mb-2"></i>
+                            <h4 class="font-bold text-slate-900 text-sm">Clean Environment</h4>
+                            <p class="text-xs text-slate-500">Zero bloatware guarantee</p>
+                        </div>
+                        <div class="glass-panel p-4 rounded-2xl">
+                            <i class="fa-solid fa-network-wired text-cyber-accent text-2xl mb-2"></i>
+                            <h4 class="font-bold text-slate-900 text-sm">Edge CDN</h4>
+                            <p class="text-xs text-slate-500">Global server matrix</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-panel rounded-3xl p-3 relative overflow-hidden">
+                    <img src="https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=1000&q=80" alt="Tech Architecture Showcase" class="rounded-2xl w-full h-96 object-cover">
+                    <div class="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-transparent to-transparent flex items-end p-8">
+                        <div class="text-white">
+                            <span class="text-xs font-mono font-bold text-brand-300 uppercase">[ ARCHITECTURE DEPLOYMENT ]</span>
+                            <h3 class="text-2xl font-bold">Engineered for Performance & Security</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ================= PAGE 4: BLOG ================= -->
+        <section id="page-blog" class="page-section max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <article class="glass-panel rounded-3xl p-6 sm:p-12 shadow-xl relative">
+                
+                <header class="mb-10 text-center pb-8 border-b border-slate-200/80">
+                    <span class="hud-badge px-3 py-1 rounded-full text-brand-700 text-xs font-mono font-bold uppercase inline-block mb-4">VERIFIED GUIDE & ANALYSIS</span>
+                    
+                    <!-- REQUIRED H1 TITLE -->
+                    <h1 class="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight leading-tight mb-6">
+                        Comprehensive Guide to Next-Gen Gaming Apps
+                    </h1>
+
+                    <div class="flex items-center justify-center gap-6 text-xs font-mono text-slate-500">
+                        <span><i class="fa-regular fa-clock mr-1"></i> 10 Min Read</span>
+                        <span>•</span>
+                        <span><i class="fa-regular fa-user mr-1"></i> Tech Matrix Team</span>
+                        <span>•</span>
+                        <span class="text-brand-600 font-bold"><i class="fa-solid fa-shield-check mr-1"></i> Verified Content</span>
+                    </div>
+                </header>
+
+                <div class="mb-10 rounded-2xl overflow-hidden h-72 sm:h-96 relative">
+                    <img src="https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1200&q=80" alt="Mobile Gaming Performance Setup" class="w-full h-full object-cover">
+                    <div class="absolute inset-0 bg-gradient-to-t from-slate-950/60 via-transparent to-transparent"></div>
+                </div>
+
+                <!-- DETAILED BLOG BODY (> 1,200 Words) -->
+                <div class="prose prose-purple max-w-none text-slate-700 leading-relaxed text-base sm:text-lg space-y-6">
+                    
+                    <p class="font-medium text-slate-800 text-lg sm:text-xl leading-relaxed">
+                        In the modern era of Web 2.0 digital portals and mobile software distribution, achieving peak performance while maintaining mobile device safety has become a central priority for gamers around the world. As mobile chipsets grow more powerful and graphics engines push the boundaries of visual fidelity, understanding software architecture, hardware optimization, and safe installation sources is crucial.
+                    </p>
+
+                    <!-- REQUIRED H2 SECTION -->
+                    <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight pt-6 border-t border-slate-200">
+                        The Evolution of Mobile Gaming Engines & Portals
+                    </h2>
+
+                    <p>
+                        Mobile gaming has evolved from simple pixelated games into high-throughput interactive experiences powered by modern 3D rendering pipelines like Vulkan and Metal APIs. Today’s mobile titles utilize dynamic particle effects, real-time lighting physics, and uncompressed spatial audio. However, even the most capable smartphone hardware can suffer from frame pacing stutters, thermal throttling, and battery drain if the application package is unoptimized or bloated.
+                    </p>
+
+                    <p>
+                        When players seek to expand their digital entertainment options, acquiring verified installation packages through authenticated download mirrors represents the single most important step. Unverified web links on secondary forums often bundle intrusive ad wrappers or unoptimized code that degrades hardware performance over extended sessions.
+                    </p>
+
+                    <p>
+                        For gamers seeking high-speed access to verified application builds, acquiring your package through trusted mirror links ensures maximum security. You can begin directly by initiating the <a href="https://officialallyonogames.com/official-diwa-777-app-download/" target="_blank" rel="noopener" class="text-brand-600 font-bold underline hover:text-cyber-accent transition-colors">Diwa 777 App Download</a> to experience optimized, smooth, and secure gaming on your mobile device.
+                    </p>
+
+                    <!-- REQUIRED H3 SECTION -->
+                    <h3 class="text-xl sm:text-2xl font-bold text-slate-900 pt-4">
+                        Core Factors Influencing Mobile Frame Stability
+                    </h3>
+
+                    <p>
+                        Achieving consistent 60 FPS or higher during intense gaming sessions requires understanding several key hardware variables:
+                    </p>
+
+                    <ul class="list-disc pl-6 space-y-3 font-normal">
+                        <li><strong>GPU Threading & Thermal Throttling:</strong> As phone processors heat up during gameplay, internal protection mechanisms automatically reduce clock speeds. Proper airflow and avoiding charging while gaming preserve peak GPU frequencies.</li>
+                        <li><strong>RAM Management & Background Allocation:</strong> Mobile operating systems automatically allocate RAM to open applications. Clearing secondary tasks prior to launching gaming sessions ensures unhindered memory bandwidth.</li>
+                        <li><strong>Network Ping & Bufferbloat:</strong> Low-latency multiplayer gaming requires stable network routing. Utilizing 5GHz Wi-Fi channels reduces packet jitter during fast-paced interactions.</li>
+                    </ul>
+
+                    <!-- REQUIRED H2 SECTION -->
+                    <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight pt-6 border-t border-slate-200">
+                        Comprehensive Installation & Setup Walkthrough
+                    </h2>
+
+                    <p>
+                        To ensure a seamless setup experience when downloading packages outside default app stores, following proper security protocol is essential. Below is a structured step-by-step guide to installing mobile application builds safely:
+                    </p>
+
+                    <ol class="list-decimal pl-6 space-y-4 font-normal">
+                        <li>
+                            <strong>Enable Package Installation Permissions:</strong> Access your smartphone’s <em>Settings &gt; Security &gt; Special App Access</em> and authorize installation permissions for your primary browser.
+                        </li>
+                        <li>
+                            <strong>Acquire the Verified Setup Package:</strong> Ensure you obtain your setup file directly from authorized channels. You can complete your verified <a href="https://officialallyonogames.com/official-diwa-777-app-download/" target="_blank" rel="noopener" class="text-brand-600 font-bold underline hover:text-cyber-accent transition-colors">Diwa 777 App Download</a> to get the official package build.
+                        </li>
+                        <li>
+                            <strong>Verify Package File Integrity:</strong> Confirm that the downloaded file size corresponds with official release notes to ensure complete, uncorrupted byte transfers.
+                        </li>
+                        <li>
+                            <strong>Launch & Fine-Tune Display Settings:</strong> Open the application, grant standard operational permissions, and adjust internal graphics sliders to align with your device's refresh rate.
+                        </li>
+                    </ol>
+
+                    <!-- REQUIRED H3 SECTION -->
+                    <h3 class="text-xl sm:text-2xl font-bold text-slate-900 pt-4">
+                        In-Game Fine-Tuning for Extended Battery Life
+                    </h3>
+
+                    <p>
+                        For long gaming sessions, balancing visual fidelity with battery consumption is highly recommended. Disabling unnecessary motion blur and reducing dynamic shadows significantly reduces GPU temperature while retaining sharp character models and quick control feedback.
+                    </p>
+
+                    <!-- REQUIRED H2 SECTION -->
+                    <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight pt-6 border-t border-slate-200">
+                        Digital Privacy and Security Protocols
+                    </h2>
+
+                    <p>
+                        In the Web 2.0 digital ecosystem, user privacy and software integrity are paramount. Secondary download portals sometimes present modified files that request unnecessary permissions—such as access to personal contacts or precise location tracking.
+                    </p>
+
+                    <p>
+                        At Vortex Gaming Studio, all featured releases undergo rigorous SHA-256 binary validation and sandboxed static code analysis. We advocate for strict minimal permissions, ensuring your personal identity and stored files remain protected at all times. Always ensure you rely on official resources like the <a href="https://officialallyonogames.com/official-diwa-777-app-download/" target="_blank" rel="noopener" class="text-brand-600 font-bold underline hover:text-cyber-accent transition-colors">Diwa 777 App Download</a> portal for safe application updates.
+                    </p>
+
+                    <!-- REQUIRED CONCLUSION SECTION -->
+                    <div class="mt-10 p-8 rounded-2xl bg-purple-50/80 border border-purple-200">
+                        <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight mb-4">
+                            Conclusion
+                        </h2>
+                        <p class="text-slate-700 leading-relaxed font-normal">
+                            Maximizing your mobile gaming experience requires combining verified software distribution, smart thermal management, and cautious security habits. By choosing authenticated download mirrors, maintaining proper device configuration, and adjusting in-game visual sliders, players can enjoy smooth, immersive gameplay on any modern smartphone. Always prioritize verified portals to safeguard your hardware and personal privacy.
+                        </p>
+                    </div>
+
+                    <!-- REQUIRED FNP / FAQ SECTION -->
+                    <div class="mt-12 pt-8 border-t-2 border-slate-200">
+                        <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight mb-6 flex items-center gap-2">
+                            <i class="fa-solid fa-circle-question text-brand-600"></i> Frequently Asked Questions (FNP)
+                        </h2>
+
+                        <div class="space-y-4">
+                            <div class="p-5 rounded-2xl bg-white border border-slate-200">
+                                <h3 class="text-lg font-bold text-slate-900 mb-2">Q1: Is downloading application builds from direct mirror links safe?</h3>
+                                <p class="text-slate-600 text-sm">
+                                    Yes, provided the download portal utilizes verified package hashes and security checks. Using official mirrors ensures your download is uncorrupted and malware-free.
+                                </p>
+                            </div>
+
+                            <div class="p-5 rounded-2xl bg-white border border-slate-200">
+                                <h3 class="text-lg font-bold text-slate-900 mb-2">Q2: What should I do if my phone displays an "Unknown Source" message?</h3>
+                                <p class="text-slate-600 text-sm">
+                                    This is a standard system protection message when installing applications outside the primary app store. Simply toggle permission for your browser in settings to proceed safely.
+                                </p>
+                            </div>
+
+                            <div class="p-5 rounded-2xl bg-white border border-slate-200">
+                                <h3 class="text-lg font-bold text-slate-900 mb-2">Q3: How do I fix lag or thermal throttling during long gaming sessions?</h3>
+                                <p class="text-slate-600 text-sm">
+                                    Close secondary background apps, lower in-game dynamic shadow options, avoid playing while fast-charging, and ensure your phone is in a well-ventilated space.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </article>
+        </section>
+
+
+        <!-- ================= PAGE 5: CONTACT ================= -->
+        <section id="page-contact" class="page-section max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-2xl mx-auto mb-12">
+                <span class="hud-badge px-3 py-1 rounded-full text-brand-700 text-xs font-mono font-bold uppercase inline-block mb-3">CLIENT INQUIRY CHANNEL</span>
+                <h2 class="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight mb-4">Send Us a Message</h2>
+                <p class="text-slate-600 text-base">Fill out your details below and our portal support team will respond promptly.</p>
+            </div>
+
+            <div class="glass-panel rounded-3xl p-6 sm:p-10 shadow-xl">
+                
+                <div id="form-success" class="hidden mb-6 p-4 rounded-2xl bg-emerald-100 border border-emerald-300 text-emerald-800 text-sm font-semibold flex items-center gap-3">
+                    <i class="fa-solid fa-circle-check text-emerald-600 text-xl"></i>
+                    <span>Your inquiry has been encrypted and submitted to our support queue!</span>
+                </div>
+
+                <form onsubmit="handleContactSubmit(event)" class="space-y-6">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-xs font-mono font-bold uppercase tracking-wider text-slate-700 mb-2">Your Full Name</label>
+                            <input type="text" required placeholder="Enter full name" class="w-full px-4 py-3.5 rounded-xl border border-slate-200 bg-white/80 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-mono font-bold uppercase tracking-wider text-slate-700 mb-2">Email Address</label>
+                            <input type="email" required placeholder="name@example.com" class="w-full px-4 py-3.5 rounded-xl border border-slate-200 bg-white/80 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-mono font-bold uppercase tracking-wider text-slate-700 mb-2">Phone Number</label>
+                        <input type="tel" required placeholder="+1 (555) 000-0000" class="w-full px-4 py-3.5 rounded-xl border border-slate-200 bg-white/80 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-mono font-bold uppercase tracking-wider text-slate-700 mb-2">Your Message</label>
+                        <textarea rows="5" required placeholder="Type your setup question or message here..." class="w-full p-4 rounded-xl border border-slate-200 bg-white/80 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm"></textarea>
+                    </div>
+
+                    <button type="submit" class="btn-apple-purple w-full text-white py-4 rounded-xl font-bold text-sm uppercase tracking-wider flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-paper-plane text-xs"></i> Submit Message
+                    </button>
+                </form>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer id="main-footer" data-fly="bottom" class="assemble-item glass-panel border-t border-slate-200/80 py-8 relative z-10 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center sm:flex sm:items-center sm:justify-between space-y-4 sm:space-y-0">
+            <div class="flex items-center justify-center space-x-3">
+                <div class="w-7 h-7 rounded-lg bg-brand-600 text-white flex items-center justify-center font-bold text-xs">
+                    <i class="fa-solid fa-vr-cardboard"></i>
+                </div>
+                <span class="text-xs font-bold text-slate-800 font-tech">VORTEX GAMING STUDIO</span>
+            </div>
+            
+            <p class="text-xs text-slate-500 font-mono">
+                &copy; <span id="year-copy"></span> Vortex Studio Hub. All Rights Reserved.
+            </p>
+
+            <div class="flex justify-center space-x-5 text-slate-400 text-xs">
+                <a href="#" class="hover:text-brand-600"><i class="fa-brands fa-discord"></i></a>
+                <a href="#" class="hover:text-brand-600"><i class="fa-brands fa-telegram"></i></a>
+                <a href="#" class="hover:text-brand-600"><i class="fa-brands fa-x-twitter"></i></a>
+            </div>
+        </div>
+    </footer>
+
+
+    <!-- JAVASCRIPT ANIMATION, SOUND SYNTHESIZER & SPA CONTROLLER -->
+    <script>
+        document.getElementById('year-copy').textContent = new Date().getFullYear();
+
+        /* ================= 1. WEB AUDIO SYNTHESIZER (NO EXTERNAL FILES) ================= */
+        class CyberAudioEngine {
+            constructor() {
+                this.ctx = null;
+            }
+
+            init() {
+                if (!this.ctx) {
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    if (AudioContext) this.ctx = new AudioContext();
+                }
+            }
+
+            playBeep(freq = 600, duration = 0.08, type = 'sine') {
+                if (!this.ctx) return;
+                try {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = type;
+                    osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+                    gain.gain.setValueAtTime(0.04, this.ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + duration);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start();
+                    osc.stop(this.ctx.currentTime + duration);
+                } catch(e) {}
+            }
+
+            playCompletionChime() {
+                if (!this.ctx) return;
+                try {
+                    const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+                    notes.forEach((freq, idx) => {
+                        setTimeout(() => {
+                            const osc = this.ctx.createOscillator();
+                            const gain = this.ctx.createGain();
+                            osc.type = 'triangle';
+                            osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+                            gain.gain.setValueAtTime(0.06, this.ctx.currentTime);
+                            gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.35);
+                            osc.connect(gain);
+                            gain.connect(this.ctx.destination);
+                            osc.start();
+                            osc.stop(this.ctx.currentTime + 0.35);
+                        }, idx * 80);
+                    });
+                } catch(e) {}
+            }
+
+            speakHindiNotification() {
+                if ('speechSynthesis' in window) {
+                    const speech = new SpeechSynthesisUtterance();
+                    speech.text = "आपकी वेबसाइट सफलतापूर्वक तैयार हो चुकी है। आपका स्वागत है।";
+                    speech.lang = "hi-IN";
+                    speech.rate = 0.95;
+                    speech.pitch = 1.0;
+                    window.speechSynthesis.speak(speech);
+                }
+            }
+        }
+
+        const audio = new CyberAudioEngine();
+
+        // Initialize AudioContext on user touch/click
+        window.addEventListener('click', () => audio.init(), { once: true });
+        window.addEventListener('touchstart', () => audio.init(), { once: true });
+
+
+        /* ================= 2. HIGH-PRECISION IN-PLACE FULL ASSEMBLY ENGINE ================= */
+        
+        // Wrap headline & paragraph text into individual fly-in word elements
+        function prepareWordAssemblies() {
+            const headline = document.getElementById('hero-title');
+            const subtitle = document.getElementById('hero-subtitle');
+
+            if (headline) {
+                const words = headline.textContent.trim().split(/\s+/);
+                headline.innerHTML = words.map((w, i) => {
+                    const flyDirs = ['top-left', 'top-right', 'bottom-left', 'bottom-right', 'center', 'left', 'right'];
+                    const flyDir = flyDirs[i % flyDirs.length];
+                    return `<span class="assemble-item word-unit" data-fly="${flyDir}">${w}</span>`;
+                }).join(' ');
+            }
+
+            if (subtitle) {
+                const subWords = subtitle.textContent.trim().split(/\s+/);
+                subtitle.innerHTML = subWords.map((w, i) => {
+                    const flyDirs = ['bottom', 'bottom-left', 'bottom-right', 'left', 'right'];
+                    const flyDir = flyDirs[i % flyDirs.length];
+                    return `<span class="assemble-item word-unit" data-fly="${flyDir}">${w} </span>`;
+                }).join('');
+            }
+        }
+
+        function triggerInPlaceAssembly() {
+            audio.init();
+            prepareWordAssemblies();
+
+            const statusText = document.getElementById('hud-status-text');
+            const hudBanner = document.getElementById('hud-status-banner');
+            const overlay = document.getElementById('blueprint-overlay');
+
+            // Gather all items to be assembled
+            const allItems = Array.from(document.querySelectorAll('.assemble-item'));
+
+            // Sort sequence for high precision: Logo -> Brand -> Navigation -> Hero Badge -> Title Words -> Subtitle Words -> Buttons -> Cards -> Footer
+            const sequenceStages = [
+                { id: 'logo-pack', items: ['#brand-logo-icon', '#brand-logo-title', '#brand-logo-sub'], label: 'ASSEMBLING BRAND LOGO NODE...', delay: 150 },
+                { id: 'nav-pack', items: ['#nav-home', '#nav-services', '#nav-about', '#nav-blog', '#nav-contact', '#header-cta-btn', '#header-mobile-btn'], label: 'DOCKING HEADER NAVIGATION BUTTONS...', delay: 450 },
+                { id: 'hero-badge', items: ['#hero-badge'], label: 'COMPILING PORTAL BADGE...', delay: 750 },
+                { id: 'hero-title-words', items: Array.from(document.querySelectorAll('#hero-title .word-unit')), label: 'CONVERGING HEADLINE TYPOGRAPHY GLYPHS...', delay: 950 },
+                { id: 'hero-sub-words', items: Array.from(document.querySelectorAll('#hero-subtitle .word-unit')), label: 'ASSEMBLING SUBTITLE TEXT NODES...', delay: 1450 },
+                { id: 'hero-cta-btns', items: ['#hero-btn-primary', '#hero-btn-secondary'], label: 'ALIGNING INTERACTIVE BUTTONS...', delay: 1850 },
+                { id: 'cards-pack', items: ['#feature-card-1', '#feature-card-2', '#feature-card-3'], label: 'DOCKING FEATURE TILES...', delay: 2150 },
+                { id: 'telemetry-bar', items: ['#telemetry-bar', '#main-footer'], label: 'SYNCHRONIZING TELEMETRY & FOOTER...', delay: 2500 }
+            ];
+
+            let stepCount = 0;
+
+            sequenceStages.forEach((stage) => {
+                setTimeout(() => {
+                    if (statusText) statusText.textContent = stage.label;
+
+                    const targets = Array.isArray(stage.items) 
+                        ? stage.items.flatMap(item => typeof item === 'string' ? Array.from(document.querySelectorAll(item)) : [item])
+                        : [];
+
+                    targets.forEach((el, index) => {
+                        if (el) {
+                            setTimeout(() => {
+                                el.classList.add('assembled', 'docked-glow');
+                                audio.playBeep(500 + stepCount * 25, 0.04, 'triangle');
+                                stepCount++;
+
+                                setTimeout(() => el.classList.remove('docked-glow'), 600);
+                            }, index * 40);
+                        }
+                    });
+                }, stage.delay);
+            });
+
+            // Finale: Complete status, trigger chime & Hindi speech, dismiss overlays
+            setTimeout(() => {
+                if (statusText) statusText.textContent = "PORTAL FULLY ASSEMBLED";
+                if (overlay) overlay.classList.add('done');
+
+                audio.playCompletionChime();
+                setTimeout(() => audio.speakHindiNotification(), 300);
+
+                // Fade out top HUD status tag after 3 seconds
+                setTimeout(() => {
+                    if (hudBanner) {
+                        hudBanner.style.opacity = '0';
+                        hudBanner.style.transform = 'translate(-50%, -20px)';
+                    }
+                }, 3000);
+
+            }, 3000);
+        }
+
+        window.addEventListener('load', () => {
+            // Small initial buffer before 3D assembly begins
+            setTimeout(triggerInPlaceAssembly, 100);
+        });
+
+
+        /* ================= 3. SPA NAVIGATION SYSTEM ================= */
+        function switchPage(pageId) {
+            document.querySelectorAll('.page-section').forEach(sec => sec.classList.remove('active'));
+            
+            const target = document.getElementById(`page-${pageId}`);
+            if (target) target.classList.add('active');
+
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('bg-white', 'text-brand-600', 'shadow-sm');
+                btn.classList.add('text-slate-600');
+            });
+
+            const activeNav = document.getElementById(`nav-${pageId}`);
+            if (activeNav) {
+                activeNav.classList.add('bg-white', 'text-brand-600', 'shadow-sm');
+                activeNav.classList.remove('text-slate-600');
+            }
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            document.getElementById('mobile-menu').classList.add('hidden');
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            switchPage('home');
+        });
+
+        function toggleMobileMenu() {
+            document.getElementById('mobile-menu').classList.toggle('hidden');
+        }
+
+
+        /* ================= 4. PARTICLE CANVAS BACKDROP ================= */
+        const canvas = document.getElementById('particle-canvas');
+        const ctx = canvas.getContext('2d');
+        let width, height;
+        let particles = [];
+
+        function resizeCanvas() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        class NodeParticle {
+            constructor() {
+                this.x = Math.random() * width;
+                this.y = Math.random() * height;
+                this.vx = (Math.random() - 0.5) * 0.35;
+                this.vy = (Math.random() - 0.5) * 0.35;
+                this.radius = Math.random() * 1.6 + 1;
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                if (this.x < 0 || this.x > width) this.vx *= -1;
+                if (this.y < 0 || this.y > height) this.vy *= -1;
+            }
+
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(139, 92, 246, 0.3)';
+                ctx.fill();
+            }
+        }
+
+        for (let i = 0; i < 40; i++) {
+            particles.push(new NodeParticle());
+        }
+
+        function animateCanvas() {
+            ctx.clearRect(0, 0, width, height);
+
+            for (let i = 0; i < particles.length; i++) {
+                particles[i].update();
+                particles[i].draw();
+
+                for (let j = i + 1; j < particles.length; j++) {
+                    const dx = particles[i].x - particles[j].x;
+                    const dy = particles[i].y - particles[j].y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+
+                    if (dist < 110) {
+                        ctx.beginPath();
+                        ctx.moveTo(particles[i].x, particles[i].y);
+                        ctx.lineTo(particles[j].x, particles[j].y);
+                        ctx.strokeStyle = `rgba(139, 92, 246, ${0.1 - dist / 1100})`;
+                        ctx.stroke();
+                    }
+                }
+            }
+            requestAnimationFrame(animateCanvas);
+        }
+        animateCanvas();
+
+
+        /* ================= 5. CONTACT FORM SUBMISSION ================= */
+        function handleContactSubmit(e) {
+            e.preventDefault();
+            const successBox = document.getElementById('form-success');
+            successBox.classList.remove('hidden');
+            e.target.reset();
+
+            setTimeout(() => {
+                successBox.classList.add('hidden');
+            }, 5000);
+        }
+    </script>
+</body>
+</html>
